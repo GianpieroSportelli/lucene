@@ -183,7 +183,6 @@ public class SearchFiles {
         String path = doc.get("path");
         if (path != null) {
           System.out.println((i+1) + ". " + path);
-          System.out.println("   "+doc.get("contents"));
           String title = doc.get("title");
           if (title != null) {
             System.out.println("   Title: " + doc.get("title"));
