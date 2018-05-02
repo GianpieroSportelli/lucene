@@ -40,6 +40,7 @@ public class Controller {
 		int numberOfCrawlers = 20;
 
 		CrawlConfig config = new CrawlConfig();
+		config.setMaxDepthOfCrawling(0);
 		config.setCrawlStorageFolder(crawlStorageFolder);
 
 		/*
@@ -55,16 +56,20 @@ public class Controller {
 		 * URLs that are fetched and then the crawler starts following links
 		 * which are found in these pages https://www.unipolsai.it/homepage
 		 */
-		//controller.addSeed("https://www.unipolsai.it/homepage");
+		controller.addSeed("https://www.unipolsai.it/homepage");
 		// controller.addSeed("http://www.ics.uci.edu/~lopes/");
 		// controller.addSeed("http://www.ics.uci.edu/~welling/");
 		//controller.addSeed("http://www.ics.uci.edu/");
 		//controller.addSeed("http://www.lastampa.it");
-		controller.addSeed("https://www.weroad.it");
+		//controller.addSeed("https://www.weroad.it");
 		/*
 		 * Start the crawl. This is a blocking operation, meaning that your code
 		 * will reach the line after this only when crawling is finished.
 		 */
 		controller.start(LuceneCrawler.class, numberOfCrawlers);
+		while(!controller.isFinished()){
+			
+		}
+		LuceneCrawler.finalized();
 	}
 }

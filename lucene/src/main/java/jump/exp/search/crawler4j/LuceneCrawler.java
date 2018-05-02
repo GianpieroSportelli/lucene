@@ -84,10 +84,15 @@ public class LuceneCrawler extends WebCrawler {
 			System.out.println("Number of outgoing links: " + links.size());
 		}
 	}
+	
+	public static void finalized() throws IOException{
+		writer.close();
+	}
 
 	private void index(IndexWriter writer, String text, String url) throws IOException {
 		Document doc = new Document();
 		Field pathField = new StringField("path", url, Field.Store.YES);
+		System.out.println(url+":"+text);
 		doc.add(pathField);
 		doc.add(new TextField("contents", text, Field.Store.YES));
 		System.out.println("adding " + url);
