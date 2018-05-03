@@ -16,6 +16,8 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -25,20 +27,19 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class LuceneCrawler extends WebCrawler {
 
 	private static IndexWriter writer;
-	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpg" + "|png|mp3|mp4|zip|gz))$");
+	public static Pattern FILTERS = Pattern.compile(".*");
+	Logger log= LoggerFactory.getLogger(getClass());
 
 	public LuceneCrawler() throws IOException {
 		super();
 		if (writer == null) {
-			System.out.println("Constructor");
+			log.info("Constructor");
 			String indexPath = "./index";
 			Directory dir = FSDirectory.open(Paths.get(indexPath));
 			Analyzer analyzer = new StandardAnalyzer();
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			iwc.setOpenMode(OpenMode.CREATE);
 			writer = new IndexWriter(dir, iwc);
-		} else {
-			System.out.println("Già pronto!!!");
 		}
 	}
 
@@ -55,7 +56,7 @@ public class LuceneCrawler extends WebCrawler {
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
 		String href = url.getURL().toLowerCase();
-		return !FILTERS.matcher(href).matches();
+		return FILTERS.matcher(href).matches();
 	}
 
 	/**
@@ -65,7 +66,7 @@ public class LuceneCrawler extends WebCrawler {
 	@Override
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
-		System.out.println("URL: " + url);
+		log.info("URL: " + url);
 
 		if (page.getParseData() instanceof HtmlParseData) {
 			HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
@@ -79,23 +80,22 @@ public class LuceneCrawler extends WebCrawler {
 				e.printStackTrace();
 			}
 
-			System.out.println("Text length: " + text.length());
-			System.out.println("Html length: " + html.length());
-			System.out.println("Number of outgoing links: " + links.size());
+			log.info("Text length: " + text.length());
+			log.info("Html length: " + html.length());
+			log.info("Number of outgoing links: " + links.size());
 		}
 	}
-	
-	public static void finalized() throws IOException{
+
+	public static void finalized() throws IOException {
 		writer.close();
 	}
 
 	private void index(IndexWriter writer, String text, String url) throws IOException {
 		Document doc = new Document();
 		Field pathField = new StringField("path", url, Field.Store.YES);
-		System.out.println(url+":"+text);
 		doc.add(pathField);
 		doc.add(new TextField("contents", text, Field.Store.YES));
-		System.out.println("adding " + url);
+		log.info("adding " + url);
 		writer.addDocument(doc);
 	}
 }

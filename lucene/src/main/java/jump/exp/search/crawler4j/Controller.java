@@ -1,5 +1,7 @@
 package jump.exp.search.crawler4j;
 
+import java.util.regex.Pattern;
+
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
@@ -19,7 +21,7 @@ public class Controller {
 		// configure the appender
 		String PATTERN = "%d [%p|%c|%C{1}] %m%n";
 		console.setLayout(new PatternLayout(PATTERN));
-		console.setThreshold(Level.FATAL);
+		console.setThreshold(Level.INFO);
 		console.activateOptions();
 		// add appender to any Logger (here is root)
 		Logger.getRootLogger().addAppender(console);
@@ -28,7 +30,7 @@ public class Controller {
 		fa.setName("FileLogger");
 		fa.setFile("./log/mylog.log");
 		fa.setLayout(new PatternLayout("%d %-5p [%c{1}] %m%n"));
-		fa.setThreshold(Level.DEBUG);
+		fa.setThreshold(Level.INFO);
 		fa.setAppend(true);
 		fa.activateOptions();
 
@@ -40,7 +42,7 @@ public class Controller {
 		int numberOfCrawlers = 20;
 
 		CrawlConfig config = new CrawlConfig();
-		config.setMaxDepthOfCrawling(0);
+		config.setMaxDepthOfCrawling(10);
 		config.setCrawlStorageFolder(crawlStorageFolder);
 
 		/*
@@ -66,10 +68,11 @@ public class Controller {
 		 * Start the crawl. This is a blocking operation, meaning that your code
 		 * will reach the line after this only when crawling is finished.
 		 */
+		LuceneCrawler.FILTERS=Pattern.compile("https://www.unipolsai.it/.*");
 		controller.start(LuceneCrawler.class, numberOfCrawlers);
-		while(!controller.isFinished()){
-			
-		}
+		
+		while(!controller.isFinished());
+		
 		LuceneCrawler.finalized();
 	}
 }
