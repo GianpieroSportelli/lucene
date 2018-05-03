@@ -16,6 +16,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,14 +28,14 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class LuceneCrawler extends WebCrawler {
 
 	private static IndexWriter writer;
+	public static String indexPath = "./index";
 	public static Pattern FILTERS = Pattern.compile(".*");
-	Logger log= LoggerFactory.getLogger(getClass());
+	Logger log = LoggerFactory.getLogger(getClass());
 
 	public LuceneCrawler() throws IOException {
 		super();
 		if (writer == null) {
 			log.info("Constructor");
-			String indexPath = "./index";
 			Directory dir = FSDirectory.open(Paths.get(indexPath));
 			Analyzer analyzer = new StandardAnalyzer();
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
@@ -65,37 +66,39 @@ public class LuceneCrawler extends WebCrawler {
 	 */
 	@Override
 	public void visit(Page page) {
+		
 		String url = page.getWebURL().getURL();
-		log.info("URL: " + url);
-
 		if (page.getParseData() instanceof HtmlParseData) {
+			log.info("FRONTIER LENGHT: "+myController.getFrontier().getQueueLength());
 			HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
-			String text = htmlParseData.getText();
 			String html = htmlParseData.getHtml();
 			Set<WebURL> links = htmlParseData.getOutgoingUrls();
 			try {
-				index(writer, text, url);
+				index(writer, html, url);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.error(e.getMessage());
 			}
-
-			log.info("Text length: " + text.length());
-			log.info("Html length: " + html.length());
 			log.info("Number of outgoing links: " + links.size());
+		}else{
+			log.info("Documento saltato");
 		}
 	}
 
 	public static void finalized() throws IOException {
-		writer.close();
+		if (writer != null)
+			writer.close();
 	}
 
-	private void index(IndexWriter writer, String text, String url) throws IOException {
+	private void index(IndexWriter writer, String html, String url) throws IOException {
+		org.jsoup.nodes.Document Jdoc = Jsoup.parse(html);
+		String title=Jdoc.title();
+		String text=Jdoc.text();
+		log.info("URL: "+url+" TITLE: "+title+" CONTENTS: "+text);
 		Document doc = new Document();
-		Field pathField = new StringField("path", url, Field.Store.YES);
-		doc.add(pathField);
+		doc.add( new StringField("url", url, Field.Store.YES));
 		doc.add(new TextField("contents", text, Field.Store.YES));
-		log.info("adding " + url);
+		doc.add(new TextField("title", title, Field.Store.YES));
+		log.debug("adding " + url);
 		writer.addDocument(doc);
 	}
 }

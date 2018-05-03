@@ -30,7 +30,7 @@ public class Controller {
 		fa.setName("FileLogger");
 		fa.setFile("./log/mylog.log");
 		fa.setLayout(new PatternLayout("%d %-5p [%c{1}] %m%n"));
-		fa.setThreshold(Level.INFO);
+		fa.setThreshold(Level.ERROR);
 		fa.setAppend(true);
 		fa.activateOptions();
 
@@ -50,25 +50,29 @@ public class Controller {
 		 */
 		PageFetcher pageFetcher = new PageFetcher(config);
 		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
+		robotstxtConfig.setUserAgentName("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
 		RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
 		CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
-
 		/*
 		 * For each crawl, you need to add some seed urls. These are the first
 		 * URLs that are fetched and then the crawler starts following links
-		 * which are found in these pages https://www.unipolsai.it/homepage
+		 * which are found in these pages 
 		 */
-		controller.addSeed("https://www.unipolsai.it/homepage");
+		//controller.addSeed("https://www.unipolsai.it/homepage");
 		// controller.addSeed("http://www.ics.uci.edu/~lopes/");
 		// controller.addSeed("http://www.ics.uci.edu/~welling/");
 		//controller.addSeed("http://www.ics.uci.edu/");
 		//controller.addSeed("http://www.lastampa.it");
 		//controller.addSeed("https://www.weroad.it");
+		controller.addSeed("https://www.apple.com/it/");
 		/*
 		 * Start the crawl. This is a blocking operation, meaning that your code
 		 * will reach the line after this only when crawling is finished.
 		 */
-		LuceneCrawler.FILTERS=Pattern.compile("https://www.unipolsai.it/.*");
+		LuceneCrawler.FILTERS=Pattern.compile("https://www.apple.com/it/.*");
+		//LuceneCrawler.FILTERS=Pattern.compile("https://www.weroad.it/.*");
+		//LuceneCrawler.FILTERS=Pattern.compile("http://www.lastampa.it/.*");
+		//LuceneCrawler.FILTERS=Pattern.compile("https://www.unipolsai.it/.*");
 		controller.start(LuceneCrawler.class, numberOfCrawlers);
 		
 		while(!controller.isFinished());
