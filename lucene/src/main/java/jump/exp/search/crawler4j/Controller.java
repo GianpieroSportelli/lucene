@@ -39,7 +39,7 @@ public class Controller {
 		// repeat with all other desired appenders
 
 		String crawlStorageFolder = "./crawl/root";
-		int numberOfCrawlers = 20;
+		int numberOfCrawlers = 3;
 
 		CrawlConfig config = new CrawlConfig();
 		config.setMaxDepthOfCrawling(10);
@@ -64,12 +64,12 @@ public class Controller {
 		//controller.addSeed("http://www.ics.uci.edu/");
 		//controller.addSeed("http://www.lastampa.it");
 		//controller.addSeed("https://www.weroad.it");
-		controller.addSeed("https://www.apple.com/it/");
+		controller.addSeed("https://www.celi.it/");
 		/*
 		 * Start the crawl. This is a blocking operation, meaning that your code
 		 * will reach the line after this only when crawling is finished.
 		 */
-		LuceneCrawler.FILTERS=Pattern.compile("https://www.apple.com/it/.*");
+		LuceneCrawler.FILTERS=Pattern.compile("https://www.celi.it/.*");
 		//LuceneCrawler.FILTERS=Pattern.compile("https://www.weroad.it/.*");
 		//LuceneCrawler.FILTERS=Pattern.compile("http://www.lastampa.it/.*");
 		//LuceneCrawler.FILTERS=Pattern.compile("https://www.unipolsai.it/.*");
