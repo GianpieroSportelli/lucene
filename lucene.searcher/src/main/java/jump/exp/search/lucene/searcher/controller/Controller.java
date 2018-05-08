@@ -1,6 +1,7 @@
 package jump.exp.search.lucene.searcher.controller;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
@@ -12,6 +13,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.uci.ics.crawler4j.crawler.CrawlConfig;
+import edu.uci.ics.crawler4j.crawler.CrawlController;
+import edu.uci.ics.crawler4j.fetcher.PageFetcher;
+import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
+import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import jump.exp.search.lucene.crawler.LuceneCrawler;
+import jump.exp.search.lucene.domain.SearchResult;
 import jump.exp.search.lucene.searcher.configuration.Configuration;
 import jump.exp.search.lucene.searcher.lucene.Searcher;
 
@@ -22,7 +32,6 @@ public class Controller {
 	
 	static final Logger log=LoggerFactory.getLogger(Controller.class);
 	
-	@SuppressWarnings("unused")
 	private Configuration conf;
 	private Searcher searcher;
 	
@@ -42,9 +51,38 @@ public class Controller {
 		log.error("ERROR");
 	}
 	
-	@RequestMapping(path="/search" , method = RequestMethod.GET, params = { "q"})
-	public String search(@RequestParam(value = "q") String q) throws IOException, InvalidTokenOffsetsException, ParseException {
-		return searcher.doPagingSearch(10, 1, q);
+	@RequestMapping(path="/search" , method = RequestMethod.GET, params = { "q","page","row"}, produces = "application/json")
+	public String search(@RequestParam(value = "q") String q,@RequestParam(value = "page") int page,@RequestParam(value = "row") int row) throws IOException, InvalidTokenOffsetsException, ParseException {
+		SearchResult result= searcher.doPagingSearch(row, page, q);
+		return new ObjectMapper().writeValueAsString(result);
+	}
+	
+	@RequestMapping(path="/crawling")
+	public void crawl() throws Exception{
+		
+		CrawlConfig config = new CrawlConfig();
+		config.setMaxDepthOfCrawling(10);
+		config.setCrawlStorageFolder(conf.getCrawlFolder());
+		
+		PageFetcher pageFetcher = new PageFetcher(config);
+		
+		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
+		
+		robotstxtConfig.setUserAgentName(conf.getCrawlUserAgent());
+		
+		RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
+		
+		CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+		
+		controller.addSeed(conf.getCrawlSite());
+		LuceneCrawler.FILTERS=Pattern.compile(conf.getCrawlFilter());
+		LuceneCrawler.indexPath=conf.getCrawlIndexPath();
+		
+		controller.start(LuceneCrawler.class, conf.getCrawlThread());
+		
+		while(!controller.isFinished());
+		
+		LuceneCrawler.finalized();
 	}
 	
 	
